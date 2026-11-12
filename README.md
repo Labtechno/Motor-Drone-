@@ -27,7 +27,13 @@ Inspiration : le *Rotary Drone* de The Sound of Machines.
 
 ![Maquette 3D](docs/maquette-3d.png)
 
-Pour la manipuler, télécharge [`docs/maquette-3d.html`](docs/maquette-3d.html) et ouvre-le dans un navigateur (connexion internet nécessaire pour charger three.js). On peut faire tourner le boîtier, actionner l'interrupteur missile, régler vitesse et volume, passer en noir mat et voir l'intérieur en rayons X. Le plan de perçage est en bas de la page et dans [`docs/circuit.md`](docs/circuit.md).
+### Vue intérieure
+
+![Intérieur du boîtier](docs/interieur.png)
+
+Dessus retiré : moteur 130 monté debout, potentiomètres, interrupteur missile, LED et jacks fixés au boîtier ; piles 4 × AA (moteur) et 9 V (préampli), carte de commande moteur avec le TIP121 et carte du préampli JFET. Placement des piles et des cartes indicatif.
+
+Pour la manipuler, télécharge [`docs/maquette-3d.html`](docs/maquette-3d.html) et ouvre-le dans un navigateur (connexion internet nécessaire pour charger three.js). On peut faire tourner le boîtier, actionner l'interrupteur missile, régler vitesse et volume, passer en noir mat, voir l'intérieur en rayons X ou retirer le dessus (vue « Intérieur », pièces légendées). Le plan de perçage est en bas de la page et dans [`docs/circuit.md`](docs/circuit.md).
 
 ## Schéma
 

@@ -59,7 +59,8 @@ input[type=range] { width: 160px; max-width: 42vw; accent-color: var(--steel); }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }
 .seg label { border-radius: 0; }
 .seg label:first-of-type { border-radius: 3px 0 0 3px; }
-.seg label:last-of-type { border-radius: 0 3px 3px 0; border-left: 0; }
+.seg label + input + label { border-left: 0; }
+.seg label:last-of-type { border-radius: 0 3px 3px 0; }
 .seg input:checked + label { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .check { display: flex; align-items: center; gap: 8px; font-size: 15px; cursor: pointer; }
 .check input { width: 18px; height: 18px; accent-color: var(--steel); }
@@ -89,7 +90,7 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
   <header>
     <div class="eyebrow">Maquette 3D · boîtier alu Box Type JJ (format 1590XX) · version du 12/11/2026</div>
     <h1>Drone Box Nº1</h1>
-    <p class="lede">Moteur <b>taille 130</b> monté debout sous le dessus, <b>hélice Ø 58 mm</b> sous une grille de 60 mm posée sur entretoises de 25 mm. La languette de la <b>plaque alu</b> frotte les pales, deux piezos sont collés dessous. Commandes sur le dessus, jacks <b>sortie</b> et <b>CV</b> à l'arrière, piles à l'intérieur. Cotes en cm.</p>
+    <p class="lede">Moteur <b>taille 130</b> monté debout sous le dessus, <b>hélice Ø 58 mm</b> sous une grille de 60 mm posée sur entretoises de 25 mm. La languette de la <b>plaque alu</b> frotte les pales, deux piezos sont collés dessous. Commandes sur le dessus, jacks <b>sortie</b> et <b>CV</b> à l'arrière, piles à l'intérieur. La vue <b>Intérieur</b> retire le dessus et légende chaque pièce. Cotes en cm.</p>
   </header>
 
   <section class="views" aria-label="Trois vues de la maquette">
@@ -129,8 +130,12 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
       </div>
     </div>
     <div class="ctl">
-      <span class="lab">Intérieur</span>
-      <label class="check" for="xray"><input type="checkbox" id="xray">Vue rayons X</label>
+      <span class="lab" id="mode-lab">Vue</span>
+      <div class="seg" role="radiogroup" aria-labelledby="mode-lab">
+        <input type="radio" name="mode" id="m-ext" value="ext" checked><label for="m-ext">Extérieur</label>
+        <input type="radio" name="mode" id="m-xray" value="xray"><label for="m-xray">Rayons X</label>
+        <input type="radio" name="mode" id="m-open" value="open"><label for="m-open">Intérieur</label>
+      </div>
     </div>
   </section>
 
@@ -175,7 +180,7 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
   function tok(n) { return css.getPropertyValue(n).trim(); }
 
   // Box Type JJ : 145 × 120 × 39 mm. Unité : cm. x vers la droite, z vers l'avant, y vers le haut.
-  var L = 14.5, D = 12.0, H = 3.9, WALL = .3;
+  var L = 14.5, D = 12.0, H = 3.9, WALL = .35;
   function X(mmLeft) { return (mmLeft - 72.5) / 10; }
   function Z(mmFront) { return (60 - mmFront) / 10; }
   var AX = { x: X(40), z: Z(75) };
@@ -184,6 +189,7 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
   var st = { on: true, speed: .45, vol: .7 };
 
   var scene = new THREE.Scene();
+  var OUT = new THREE.Group(); scene.add(OUT); // tout ce qui est fixé sur le dessus, côté extérieur
   function std(c, r, m, extra) {
     var o = { color: c, roughness: r, metalness: m };
     if (extra) for (var k in extra) o[k] = extra[k];
@@ -236,9 +242,15 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
   // ---------- boîtier ----------
   var B = .25;
   var shell = new THREE.Group(); scene.add(shell);
-  var bodyGeo = new THREE.ExtrudeGeometry(roundedRect(L - 2 * B, D - 2 * B, .45), { depth: H - .35 - 2 * B, bevelEnabled: true, bevelThickness: B, bevelSize: B, bevelSegments: 4, curveSegments: 10 });
-  bodyGeo.rotateX(-PI / 2); bodyGeo.translate(0, .35 + B, 0);
-  add(bodyGeo, M.body, 0, 0, 0, shell);
+  // parois creuses + dessus amovible (pour la vue intérieure)
+  var wallShape = roundedRect(L, D, .65);
+  wallShape.holes.push(roundedRect(L - 2 * WALL, D - 2 * WALL, .35));
+  var wallGeo = new THREE.ExtrudeGeometry(wallShape, { depth: H - .35 - .3, bevelEnabled: false, curveSegments: 10 });
+  wallGeo.rotateX(-PI / 2); wallGeo.translate(0, .35, 0);
+  add(wallGeo, M.body, 0, 0, 0, shell);
+  var topGeo = new THREE.ExtrudeGeometry(roundedRect(L - .4, D - .4, .45), { depth: .1, bevelEnabled: true, bevelThickness: .2, bevelSize: .2, bevelSegments: 4, curveSegments: 10 });
+  topGeo.rotateX(-PI / 2); topGeo.translate(0, H - .3, 0);
+  var topPlate = add(topGeo, M.body, 0, 0, 0, shell);
   // couvercle (fond) et ses 4 vis
   var lidGeo = new THREE.ExtrudeGeometry(roundedRect(L - .1, D - .1, .5), { depth: .3, bevelEnabled: false, curveSegments: 10 });
   lidGeo.rotateX(-PI / 2); lidGeo.translate(0, .03, 0);
@@ -252,7 +264,7 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
   });
   // rivets déco
   [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (s) {
-    add(new THREE.SphereGeometry(.16, 14, 8, 0, PI * 2, 0, PI / 2), M.chrome, s[0] * (L / 2 - .75), H, s[1] * (D / 2 - .75));
+    add(new THREE.SphereGeometry(.16, 14, 8, 0, PI * 2, 0, PI / 2), M.chrome, s[0] * (L / 2 - .75), H, s[1] * (D / 2 - .75), OUT);
   });
 
   // gravure du dessus
@@ -283,7 +295,7 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
     g.fillText('Nº 001', tx(110), Hh - tx(6.5));
     top.t.needsUpdate = true;
   }
-  var topPlane = add(new THREE.PlaneGeometry(L, D), new THREE.MeshBasicMaterial({ map: top.t, transparent: true, depthWrite: false }), 0, H + .004, 0);
+  var topPlane = add(new THREE.PlaneGeometry(L, D), new THREE.MeshBasicMaterial({ map: top.t, transparent: true, depthWrite: false }), 0, H + .004, 0, OUT);
   topPlane.rotation.x = -PI / 2;
 
   // pochoir face avant
@@ -321,7 +333,7 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
   var pointerGeo = new THREE.ExtrudeGeometry(pointerShape, { depth: .35, bevelEnabled: true, bevelThickness: .04, bevelSize: .04, bevelSegments: 2 });
   pointerGeo.rotateX(-PI / 2);
   function knob(pos) {
-    var g = new THREE.Group(); g.position.set(pos[0], H, pos[1]); scene.add(g);
+    var g = new THREE.Group(); g.position.set(pos[0], H, pos[1]); OUT.add(g);
     add(cyl(.45, .45, .2, 6), M.chrome, 0, .1, 0, g);
     var rot = new THREE.Group(); g.add(rot);
     add(cyl(.62, .7, .45, 32), M.brown, 0, .42, 0, rot);
@@ -332,7 +344,7 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
   var kSpeed = knob(P.speed), kVol = knob(P.vol);
 
   // interrupteur missile
-  var sw = new THREE.Group(); sw.position.set(P.sw[0], H, P.sw[1]); scene.add(sw);
+  var sw = new THREE.Group(); sw.position.set(P.sw[0], H, P.sw[1]); OUT.add(sw);
   add(box(2.1, .25, 3.7), M.black, 0, .125, 0, sw);
   add(cyl(.6, .6, .25, 6), M.chrome, 0, .375, 0, sw);
   var lever = new THREE.Group(); lever.position.y = .5; sw.add(lever);
@@ -346,7 +358,7 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
   add(box(1.95, 1.5, .12), M.red, 0, .75, 3.35, cover);
 
   // LED dans son support chromé
-  var ledG = new THREE.Group(); ledG.position.set(P.led[0], H, P.led[1]); scene.add(ledG);
+  var ledG = new THREE.Group(); ledG.position.set(P.led[0], H, P.led[1]); OUT.add(ledG);
   add(cyl(.42, .48, .3, 28), M.chrome, 0, .15, 0, ledG);
   add(new THREE.SphereGeometry(.26, 20, 12, 0, PI * 2, 0, PI / 2), M.led, 0, .3, 0, ledG);
   var ledLight = new THREE.PointLight(0xff3a28, 0, 5, 2); ledLight.position.y = .9; ledG.add(ledLight);
@@ -374,7 +386,7 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
   backPlane.rotation.y = PI;
 
   // ---------- hélice, grille, plaque vibrante ----------
-  var fan = new THREE.Group(); fan.position.set(AX.x, 0, AX.z); scene.add(fan);
+  var fan = new THREE.Group(); fan.position.set(AX.x, 0, AX.z); OUT.add(fan);
   add(cyl(.32, .32, .12, 20), M.motor, 0, H + .06, 0, fan);            // palier
   add(cyl(.1, .1, .9, 12), M.chrome, 0, H + .45, 0, fan);              // axe Ø 2
   var prop = new THREE.Group(); prop.position.y = H + .95; fan.add(prop);
@@ -403,7 +415,7 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
     add(cyl(.25, .25, 2.5, 6), M.chrome, x, H + 1.25, z, fan);
   });
   // plaque vibrante : base sur 2 passe-câbles, languette relevée sous le bout des pales
-  var plate = new THREE.Group(); scene.add(plate);
+  var plate = new THREE.Group(); OUT.add(plate);
   var PB = { x: X(40), z: Z(27.5), w: 3.6, d: 2.5, y: H + .35 };
   add(box(PB.w, .05, PB.d), M.alu, PB.x, PB.y, PB.z, plate);
   [30, 50].forEach(function (mm) {
@@ -420,7 +432,7 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
     add(cyl(.95 * .55, .95 * .55, .03, 32), M.ceramic, PB.x + dx, PB.y - .07, PB.z + .1, plate);
   });
   // passe-câble des fils piezo
-  add(new THREE.TorusGeometry(.32, .1, 8, 24), M.rubber, X(40), H + .02, Z(10)).rotation.x = PI / 2;
+  add(new THREE.TorusGeometry(.32, .1, 8, 24), M.rubber, X(40), H + .02, Z(10), OUT).rotation.x = PI / 2;
 
   // ---------- intérieur (rayons X) ----------
   var inner = new THREE.Group(); inner.visible = false; scene.add(inner);
@@ -458,6 +470,39 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
   wire([[X(78), .6, Z(78)], [X(100), 1.4, Z(55)], [P.vol[0], IT - 1.15, P.vol[1] - .6]], M.wireW);
   wire([[P.vol[0], IT - 1.15, P.vol[1] - .6], [X(125), 1.6, Z(70)], [X(118), JACK_Y, -D / 2 + 2.8]], M.wireW);
   wire([[X(36) + 2.4, 1.6, Z(103)], [X(60), 1.2, Z(95)], [X(70), .6, Z(82)]], M.wireR);
+
+  // ---------- légendes de la vue intérieure ----------
+  var tags = new THREE.Group(); tags.visible = false; scene.add(tags); var tagList = [];
+  function tag(text, x, y, z, ty) {
+    var c = document.createElement('canvas'); c.width = 640; c.height = 120;
+    var tex = new THREE.CanvasTexture(c);
+    var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+    sp.scale.set(3.4, .64, 1); sp.renderOrder = 12; sp.position.set(x, y, z);
+    sp.userData.draw = function () {
+      var g = c.getContext('2d'); g.clearRect(0, 0, 640, 120);
+      g.font = '600 50px "Barlow Condensed", "Arial Narrow", sans-serif';
+      var w = Math.min(620, g.measureText(text).width + 44);
+      g.fillStyle = 'rgba(18,19,16,.9)'; g.strokeStyle = 'rgba(230,226,211,.75)'; g.lineWidth = 3;
+      g.beginPath(); g.rect(320 - w / 2, 18, w, 84); g.fill(); g.stroke();
+      g.fillStyle = '#e6e2d3'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 320, 62);
+      tex.needsUpdate = true;
+    };
+    sp.userData.draw(); sp.layers.set(4); tags.add(sp); tagList.push(sp);
+    // trait de rappel vers la pièce
+    var ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, y - .3, z), new THREE.Vector3(x, ty, z)]), new THREE.LineBasicMaterial({ color: 0xe6e2d3, transparent: true, opacity: .6, depthTest: false }));
+    ln.renderOrder = 11; ln.layers.set(4); tags.add(ln);
+  }
+  tag('Moteur 130', AX.x + .6, H + 1.6, AX.z + .4, IT - 1.4);
+  tag('Potar vitesse B10K', P.speed[0] - .4, H + .9, P.speed[1], IT - .6);
+  tag('Potar volume A100K', P.vol[0], H + 1.8, P.vol[1], IT - .6);
+  tag('Interrupteur missile', P.sw[0] - .3, H + 1.7, P.sw[1], IT - 1.2);
+  tag('LED', P.led[0], H + .9, P.led[1], IT - .5);
+  tag('Jack sortie 6,35', X(118), H + 2.6, Z(106), JACK_Y + .8);
+  tag('Jack CV 3,5', X(84), H + 1.3, Z(111), JACK_Y + .5);
+  tag('Piles 4 × AA (6 V moteur)', X(110), 2.6, Z(8), 1.9);
+  tag('Pile 9 V (préampli)', X(16), 3.4, Z(108), 2.1);
+  tag('Carte moteur + TIP121', X(28), 2.4, Z(14), .55);
+  tag('Préampli JFET', X(70), 3.0, Z(66), .6);
 
   // ---------- sol (perspective seulement) ----------
   var ground = add(new THREE.CircleGeometry(40, 64), new THREE.MeshStandardMaterial({ color: 0x23241f, roughness: 1, metalness: 0 }), 0, -.31, 0);
@@ -522,7 +567,7 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
     cam.left = -hw; cam.right = hw; cam.top = hh; cam.bottom = -hh; cam.updateProjectionMatrix();
   }
   var pcam = new THREE.PerspectiveCamera(32, 1.5, .2, 200);
-  pcam.layers.enable(2);
+  pcam.layers.enable(2); pcam.layers.enable(4);
   var home = { pos: new THREE.Vector3(17, 15, 21), target: new THREE.Vector3(0, 2.6, 0) };
   pcam.position.copy(home.pos);
   var main = makeView('v3d', pcam, function (a) { pcam.aspect = a; pcam.updateProjectionMatrix(); });
@@ -535,7 +580,7 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
   } else { pcam.lookAt(home.target); }
 
   var tcam = new THREE.OrthographicCamera(-1, 1, 1, -1, .1, 100);
-  tcam.layers.enable(1);
+  tcam.layers.enable(1); tcam.layers.enable(4);
   var topC = { x: 1.2, z: 1.8, w: 25, h: 21 };
   tcam.up.set(0, 0, -1); tcam.position.set(topC.x, 50, topC.z); tcam.lookAt(topC.x, 0, topC.z);
   makeView('vtop', tcam, function (a) { fitOrtho(tcam, topC.w, topC.h, a); });
@@ -553,10 +598,18 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
     M.body.roughness = f === 'noir' ? .85 : .5; M.body.metalness = f === 'noir' ? .15 : .6;
     drawTop(); drawStencil(); drawBack();
   }
-  function setXray(on) {
-    M.body.transparent = on; M.body.opacity = on ? .14 : 1; M.body.depthWrite = !on; M.body.needsUpdate = true;
-    topPlane.visible = !on;
-    inner.visible = on;
+  var interiorCam = { pos: new THREE.Vector3(9, 24, 19), target: new THREE.Vector3(0, 1.2, -.3) };
+  function setMode(m) {
+    var xr = m === 'xray', open = m === 'open';
+    M.body.transparent = xr; M.body.opacity = xr ? .14 : 1; M.body.depthWrite = !xr; M.body.needsUpdate = true;
+    topPlane.visible = m === 'ext';
+    OUT.visible = !open;
+    topPlate.visible = !open;
+    inner.visible = m !== 'ext';
+    tags.visible = open;
+    if (open && st.mode !== 'open') { pcam.position.copy(interiorCam.pos); if (controls) { controls.target.copy(interiorCam.target); controls.update(); } }
+    if (!open && st.mode === 'open') { pcam.position.copy(home.pos); if (controls) { controls.target.copy(home.target); controls.update(); } }
+    st.mode = m;
   }
   var $power = document.getElementById('power'), $ptxt = document.getElementById('power-txt');
   var $speed = document.getElementById('speed'), $sread = document.getElementById('speed-read');
@@ -572,17 +625,17 @@ td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: ta
   $speed.addEventListener('input', function () { st.speed = $speed.value / 100; syncUI(); });
   $vol.addEventListener('input', function () { st.vol = $vol.value / 100; syncUI(); });
   document.querySelectorAll('input[name=fin]').forEach(function (r) { r.addEventListener('change', function () { setFinish(r.value); }); });
-  document.getElementById('xray').addEventListener('change', function (e) { setXray(e.target.checked); });
+  document.querySelectorAll('input[name=mode]').forEach(function (r) { r.addEventListener('change', function () { setMode(r.value); }); });
   document.getElementById('reset').addEventListener('click', function () {
     pcam.position.copy(home.pos); if (controls) { controls.target.copy(home.target); controls.update(); }
   });
   st.speed = $speed.value / 100; st.vol = $vol.value / 100;
   st.fin = (document.querySelector('input[name=fin]:checked') || {}).value || 'brut';
   setFinish(st.fin);
-  setXray(document.getElementById('xray').checked);
+  st.mode = 'ext'; setMode((document.querySelector('input[name=mode]:checked') || {}).value || 'ext');
   syncUI();
 
-  function drawAll() { drawTop(); drawStencil(); drawBrass(); drawBack(); labels.forEach(function (l) { l.userData.draw(); }); }
+  function drawAll() { drawTop(); drawStencil(); drawBrass(); drawBack(); labels.forEach(function (l) { l.userData.draw(); }); tagList.forEach(function (l) { l.userData.draw(); }); }
   drawAll();
   if (document.fonts && document.fonts.load) {
     Promise.all([
