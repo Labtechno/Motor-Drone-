@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="1352" viewBox="0 0 380 676" font-family="Helvetica, Arial, sans-serif">
+<title>Motor Drone : préampli piezo et commande du moteur</title>
+<style>.th{font-size:13px;font-weight:600;fill:#1a1a1a}.ts{font-size:10px;fill:#333}</style>
+<rect width="380" height="676" fill="#ffffff"/>
+<rect x="14" y="14" width="352" height="300" rx="8" fill="none" stroke="#999" stroke-width="0.5" stroke-dasharray="4 4"/>
+<text class="th" x="30" y="40" dominant-baseline="central">Préampli piezo (buffer JFET)</text>
+<g fill="none" stroke="#1a1a1a" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+<path d="M44 140V154M34 154H54M34 174H54M44 174V188M34 188H54M38 192H50M42 196H46"/>
+<rect x="38" y="158" width="12" height="12"/>
+<path d="M44 140H88M96 140H190"/>
+<path d="M88 128V152M96 128V152" stroke-width="1.5"/>
+<path d="M190 122V158" stroke-width="2.5"/>
+<path d="M190 128H214V92M204 92H224"/>
+<path d="M190 152H214V196"/>
+<rect x="208" y="196" width="12" height="36"/>
+<path d="M214 232V246M204 246H224M208 250H220M212 254H216"/>
+<path d="M214 184H256M264 184H336"/>
+<path d="M256 172V196M264 172V196" stroke-width="1.5"/>
+<path d="M304 184V196"/>
+<rect x="298" y="196" width="12" height="36"/>
+<path d="M304 232V246M294 246H314M298 250H310M302 254H306"/>
+<circle cx="340" cy="184" r="4"/>
+<path d="M140 140V156"/>
+<rect x="134" y="156" width="12" height="36"/>
+<path d="M140 192V246"/>
+<rect x="134" y="246" width="12" height="36"/>
+<path d="M140 282V292M130 292H150M134 296H146M138 300H142"/>
+<path d="M100 180H120M110 180V190"/>
+<rect x="104" y="190" width="12" height="36"/>
+<path d="M110 226V250M110 236H140"/>
+<path d="M100 250H120M100 256H120" stroke-width="1.5"/>
+<path d="M110 256V270M100 270H120M104 274H116M108 278H112"/>
+</g>
+<g fill="#1a1a1a" stroke="none">
+<polygon points="180,135 189,140 180,145"/>
+<circle cx="140" cy="140" r="2.5"/><circle cx="214" cy="184" r="2.5"/><circle cx="304" cy="184" r="2.5"/><circle cx="110" cy="236" r="2.5"/><circle cx="140" cy="236" r="2.5"/>
+</g>
+<text class="ts" x="214" y="80" text-anchor="middle" dominant-baseline="central">+9 V</text>
+<text class="ts" x="56" y="164" dominant-baseline="central">Piezo</text>
+<text class="ts" x="92" y="116" text-anchor="middle" dominant-baseline="central">47 nF</text>
+<text class="ts" x="165" y="116" text-anchor="middle" dominant-baseline="central">2N5457</text>
+<text class="ts" x="152" y="174" dominant-baseline="central">10 MΩ</text>
+<text class="ts" x="202" y="214" text-anchor="end" dominant-baseline="central">10 kΩ</text>
+<text class="ts" x="260" y="160" text-anchor="middle" dominant-baseline="central">1 µF</text>
+<text class="ts" x="316" y="208" dominant-baseline="central">A100K</text>
+<text class="ts" x="316" y="220" dominant-baseline="central">(volume)</text>
+<text class="ts" x="336" y="164" text-anchor="middle" dominant-baseline="central">Sortie</text>
+<text class="ts" x="110" y="170" text-anchor="middle" dominant-baseline="central">+9 V</text>
+<text class="ts" x="98" y="208" text-anchor="end" dominant-baseline="central">100 kΩ</text>
+<text class="ts" x="94" y="256" text-anchor="end" dominant-baseline="central">10 µF</text>
+<text class="ts" x="126" y="246" text-anchor="middle" dominant-baseline="central">+</text>
+<text class="ts" x="152" y="264" dominant-baseline="central">100 kΩ</text>
+<rect x="14" y="332" width="352" height="324" rx="8" fill="none" stroke="#999" stroke-width="0.5" stroke-dasharray="4 4"/>
+<text class="th" x="30" y="358" dominant-baseline="central">Commande du moteur (bouton + CV)</text>
+<g fill="none" stroke="#1a1a1a" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+<path d="M42 394H62M52 394V404"/>
+<rect x="46" y="404" width="12" height="40"/>
+<path d="M52 444V458M42 458H62M46 462H58M50 466H54"/>
+<path d="M66 424H104"/>
+<rect x="104" y="418" width="36" height="12"/>
+<path d="M140 424H178V494"/>
+<circle cx="36" cy="494" r="4"/>
+<path d="M40 494H104"/>
+<rect x="104" y="488" width="36" height="12"/>
+<path d="M140 494H214"/>
+<path d="M76 494V506"/>
+<rect x="70" y="506" width="12" height="36"/>
+<path d="M76 542V554M66 554H86M70 558H82M74 562H78"/>
+<path d="M214 478V510" stroke-width="2.5"/>
+<path d="M214 486L236 472V394M226 394H246"/>
+<path d="M214 502L236 516V558"/>
+<circle cx="236" cy="574" r="16"/>
+<path d="M236 590V620"/>
+<path d="M236 536H196V574"/>
+<path d="M186 574H206M186 580H206" stroke-width="1.5"/>
+<path d="M196 580V620H290"/>
+<path d="M236 546H290V561M281 561H299"/>
+<path d="M290 577V630M280 630H300M284 634H296M288 638H292"/>
+</g>
+<g fill="#1a1a1a" stroke="none">
+<polygon points="66,419 59,424 66,429"/><polygon points="233,514 223,512 227,506"/><polygon points="290,562 281,577 299,577"/>
+<circle cx="178" cy="494" r="2.5"/><circle cx="76" cy="494" r="2.5"/><circle cx="236" cy="536" r="2.5"/><circle cx="236" cy="546" r="2.5"/><circle cx="236" cy="620" r="2.5"/><circle cx="290" cy="620" r="2.5"/>
+</g>
+<text class="ts" x="52" y="384" text-anchor="middle" dominant-baseline="central">+6 V</text>
+<text class="ts" x="236" y="384" text-anchor="middle" dominant-baseline="central">+6 V</text>
+<text class="ts" x="66" y="446" dominant-baseline="central">B10K (vitesse)</text>
+<text class="ts" x="122" y="408" text-anchor="middle" dominant-baseline="central">2,2 kΩ</text>
+<text class="ts" x="122" y="478" text-anchor="middle" dominant-baseline="central">2,2 kΩ</text>
+<text class="ts" x="36" y="514" text-anchor="middle" dominant-baseline="central">CV</text>
+<text class="ts" x="88" y="526" dominant-baseline="central">100 kΩ</text>
+<text class="ts" x="248" y="494" dominant-baseline="central">TIP121</text>
+<text class="th" x="236" y="574" text-anchor="middle" dominant-baseline="central">M</text>
+<text class="ts" x="180" y="577" text-anchor="end" dominant-baseline="central">47 nF</text>
+<text class="ts" x="306" y="569" dominant-baseline="central">1N4001</text>
+</svg>
