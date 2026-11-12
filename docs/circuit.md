@@ -30,8 +30,26 @@ Le TIP121 est monté en suiveur d'émetteur : la tension du moteur suit celle de
 - **Hélice :** au-dessus du boîtier, sous la grille, posée sur 4 entretoises M3 × 25 mm. Les hélices de 58 mm dépassent un peu la grille de 60 mm : rogner les pales de 2 à 3 mm, ou prendre une grille de 80 mm.
 - **Plaque vibrante :** découpée dans la tôle alu de 0,5 mm, montée souple, au contact de l'hélice. Le piezo est collé dessous (cyanoacrylate ou époxy) et relié au préampli en fil blindé.
 - **Piezo :** centre du disque vers la pointe du jack, bord laiton à la masse.
-- **Perçages :** potentiomètres 7 mm, jack 6,35 mm 9 mm, jack 3,5 mm 6 mm, support de LED 8,5 mm, interrupteur missile environ 12 mm (à mesurer à réception).
 - **Circuits :** une plaque à bandes 50 × 100 mm par boîte, coupée en deux (préampli et commande moteur).
+
+## Plan de perçage
+
+Positions en mm depuis le bord gauche et le bord avant du dessus, boîtier Box Type JJ (145 × 120 × 39 mm) posé sur son couvercle. Même plan dans la [maquette 3D](maquette-3d.html). Mesurer le boîtier et les pièces avant de tracer.
+
+| Élément | Face | Position (mm) | Perçage |
+|---|---|---|---|
+| Axe moteur + hélice Ø 58 | Dessus | 40 · 75 | Ø 7 pour le palier + 2 vis du moteur, à reporter sur la pièce |
+| Grille 60 × 60 sur entretoises M3 × 25 | Dessus | (15 · 50) (65 · 50) (15 · 100) (65 · 100) | 4 × Ø 3,2 |
+| Plaque vibrante sur passe-câbles | Dessus | (30 · 27) et (50 · 27) | 2 × Ø 8 (PC3) |
+| Passage des fils des piezos | Dessus | 40 · 10 | Ø 8 + passe-câble |
+| Bouton vitesse (B10K) | Dessus | 92 · 30 | Ø 7 |
+| Bouton volume (A100K) | Dessus | 127 · 30 | Ø 7 |
+| Interrupteur missile | Dessus | 92 · 85 | Ø 12 (à mesurer) |
+| LED + support chromé | Dessus | 127 · 90 | Ø 8,5 |
+| Jack 6,35 sortie | Arrière | 118 du bord gauche (vu de face) · 19 du bas | Ø 9 |
+| Jack 3,5 entrée CV | Arrière | 88 du bord gauche (vu de face) · 19 du bas | Ø 6 |
+
+Hauteur hors tout avec la grille : environ 6,6 cm.
 
 ## Option alimentation 9 V
 

@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drone Box Nº1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Barlow:wght@400;500&family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Atelier sombre : le boîtier est la scène, l'interface imite une tôle gravée */
+:root {
+  color-scheme: dark;
+  --bg: #121310;
+  --panel: #1b1c18;
+  --stage: #1a1b16;
+  --line: #2e3029;
+  --fg: #e6e2d3;
+  --muted: #a3a191;
+  --signal: #d8402c;
+  --steel: #b9b6a6;
+  --f-display: "Allerta Stencil", "Stardos Stencil", Impact, sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --f-label: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+html, body { margin: 0; background: var(--bg); color: var(--fg); }
+body { font-family: var(--f-body); font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+.eyebrow { font-family: var(--f-label); font-weight: 600; text-transform: uppercase; letter-spacing: .14em; font-size: 13px; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(38px, 6vw, 64px); line-height: 1; margin: 6px 0 10px; letter-spacing: .02em; text-wrap: balance; }
+.lede { margin: 0; max-width: 68ch; color: var(--muted); }
+.lede b { color: var(--fg); font-weight: 500; }
+
+.views { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; height: clamp(440px, 58vw, 640px); }
+.view { position: relative; margin: 0; border: 1px solid var(--line); background: var(--stage); border-radius: 3px; overflow: hidden; min-height: 0; }
+.v-main { grid-row: span 2; }
+.stage { position: absolute; inset: 0; }
+.stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+figcaption { position: absolute; top: 10px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; pointer-events: none; }
+figcaption span { font-family: var(--f-label); font-weight: 600; text-transform: uppercase; letter-spacing: .12em; font-size: 13px; }
+figcaption em { font-style: normal; font-size: 13px; color: var(--muted); }
+#reset { position: absolute; right: 10px; bottom: 10px; }
+
+button, .seg label { font-family: var(--f-label); font-weight: 600; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 3px; padding: 8px 12px; cursor: pointer; }
+button:hover, .seg label:hover { border-color: var(--steel); }
+button:focus-visible, input:focus-visible + label, input[type=range]:focus-visible, input[type=checkbox]:focus-visible { outline: 2px solid var(--steel); outline-offset: 2px; }
+
+.console { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 26px; padding: 16px 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 3px; }
+.ctl { display: grid; gap: 4px; min-width: 0; }
+.ctl > .lab { font-family: var(--f-label); font-weight: 600; text-transform: uppercase; letter-spacing: .12em; font-size: 12px; color: var(--muted); }
+.row { display: flex; align-items: center; gap: 10px; }
+input[type=range] { width: 160px; max-width: 42vw; accent-color: var(--steel); }
+.read { font-family: var(--f-mono); font-size: 13px; font-variant-numeric: tabular-nums; color: var(--fg); min-width: 7ch; }
+#power { display: inline-flex; align-items: center; gap: 10px; padding: 10px 14px; }
+#power .lamp { width: 10px; height: 10px; border-radius: 50%; background: #3a1712; box-shadow: inset 0 0 0 1px #000; }
+#power[aria-pressed="true"] .lamp { background: var(--signal); box-shadow: 0 0 10px var(--signal); }
+.seg { display: flex; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label { border-radius: 0; }
+.seg label:first-of-type { border-radius: 3px 0 0 3px; }
+.seg label:last-of-type { border-radius: 0 3px 3px 0; border-left: 0; }
+.seg input:checked + label { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.check { display: flex; align-items: center; gap: 8px; font-size: 15px; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--steel); }
+
+.specs { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+h2 { font-family: var(--f-label); font-weight: 600; font-size: 20px; text-transform: uppercase; letter-spacing: .1em; margin: 0 0 10px; }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 3px; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--f-label); font-weight: 600; text-transform: uppercase; letter-spacing: .1em; font-size: 12px; color: var(--muted); background: var(--panel); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.notes { display: grid; gap: 10px; color: var(--muted); font-size: 15px; }
+.notes p { margin: 0; }
+.notes b { color: var(--fg); font-weight: 500; }
+
+@media (max-width: 780px) {
+  .views { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; height: auto; }
+  .v-main { grid-row: auto; height: 380px; }
+  .view { height: 260px; }
+  .specs { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Maquette 3D · boîtier alu Box Type JJ (format 1590XX) · version du 12/11/2026</div>
+    <h1>Drone Box Nº1</h1>
+    <p class="lede">Moteur <b>taille 130</b> monté debout sous le dessus, <b>hélice Ø 58 mm</b> sous une grille de 60 mm posée sur entretoises de 25 mm. La languette de la <b>plaque alu</b> frotte les pales, deux piezos sont collés dessous. Commandes sur le dessus, jacks <b>sortie</b> et <b>CV</b> à l'arrière, piles à l'intérieur. Cotes en cm.</p>
+  </header>
+
+  <section class="views" aria-label="Trois vues de la maquette">
+    <figure class="view v-main">
+      <div class="stage" id="v3d"></div>
+      <figcaption><span>Perspective</span><em>Glisser pour tourner · molette ou pincement pour zoomer</em></figcaption>
+      <button id="reset" type="button">Recentrer</button>
+    </figure>
+    <figure class="view">
+      <div class="stage" id="vtop"></div>
+      <figcaption><span>Vue de dessus</span><em>Avant en bas</em></figcaption>
+    </figure>
+    <figure class="view">
+      <div class="stage" id="vfront"></div>
+      <figcaption><span>Face avant</span></figcaption>
+    </figure>
+  </section>
+
+  <section class="console" aria-label="Commandes de la maquette">
+    <div class="ctl">
+      <span class="lab">Interrupteur missile</span>
+      <button id="power" type="button" aria-pressed="true"><span class="lamp" aria-hidden="true"></span><span id="power-txt">Marche</span></button>
+    </div>
+    <div class="ctl">
+      <label class="lab" for="speed">Vitesse (B10K)</label>
+      <div class="row"><input id="speed" type="range" min="0" max="100" value="45"><span class="read" id="speed-read"></span></div>
+    </div>
+    <div class="ctl">
+      <label class="lab" for="vol">Volume piezo (A100K)</label>
+      <div class="row"><input id="vol" type="range" min="0" max="100" value="70"><span class="read" id="vol-read"></span></div>
+    </div>
+    <div class="ctl">
+      <span class="lab" id="fin-lab">Finition</span>
+      <div class="seg" role="radiogroup" aria-labelledby="fin-lab">
+        <input type="radio" name="fin" id="fin-brut" value="brut" checked><label for="fin-brut">Alu brut</label>
+        <input type="radio" name="fin" id="fin-noir" value="noir"><label for="fin-noir">Noir mat</label>
+      </div>
+    </div>
+    <div class="ctl">
+      <span class="lab">Intérieur</span>
+      <label class="check" for="xray"><input type="checkbox" id="xray">Vue rayons X</label>
+    </div>
+  </section>
+
+  <section class="specs">
+    <div>
+      <h2>Plan de perçage</h2>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Élément</th><th>Face</th><th>Position (mm)</th><th>Perçage</th></tr></thead>
+          <tbody>
+            <tr><td>Axe moteur + hélice Ø 58</td><td>Dessus</td><td class="num">40 ← gauche · 75 ↑ avant</td><td>Ø 7 pour le palier + 2 vis du moteur, à reporter sur la pièce</td></tr>
+            <tr><td>Grille 60 × 60, entretoises M3 × 25</td><td>Dessus</td><td class="num">(15 · 50) (65 · 50)<br>(15 · 100) (65 · 100)</td><td class="num">4 × Ø 3,2</td></tr>
+            <tr><td>Plaque vibrante sur passe-câbles</td><td>Dessus</td><td class="num">(30 · 27) et (50 · 27)</td><td class="num">2 × Ø 8 (PC3)</td></tr>
+            <tr><td>Passage des fils des piezos</td><td>Dessus</td><td class="num">40 · 10</td><td class="num">Ø 8 + passe-câble</td></tr>
+            <tr><td>Bouton vitesse (B10K)</td><td>Dessus</td><td class="num">92 · 30</td><td class="num">Ø 7</td></tr>
+            <tr><td>Bouton volume (A100K)</td><td>Dessus</td><td class="num">127 · 30</td><td class="num">Ø 7</td></tr>
+            <tr><td>Interrupteur missile</td><td>Dessus</td><td class="num">92 · 85</td><td class="num">Ø 12 (à mesurer)</td></tr>
+            <tr><td>LED + support chromé</td><td>Dessus</td><td class="num">127 · 90</td><td class="num">Ø 8,5</td></tr>
+            <tr><td>Jack 6,35 sortie</td><td>Arrière</td><td class="num">118 ← gauche (vu de face) · 19 ↑ bas</td><td class="num">Ø 9</td></tr>
+            <tr><td>Jack 3,5 entrée CV</td><td>Arrière</td><td class="num">88 ← gauche (vu de face) · 19 ↑ bas</td><td class="num">Ø 6</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="notes">
+      <h2>À savoir</h2>
+      <p>Positions mesurées depuis le <b>bord gauche</b> et le <b>bord avant</b> du dessus, boîtier posé sur son couvercle.</p>
+      <p>Cotes du Box Type JJ : <b>14,5 × 12 × 3,9 cm</b>. Mesure ton boîtier et tes pièces avant de tracer, puis pointe et perce au foret étagé.</p>
+      <p>Les hélices de 58 mm dépassent un peu de la grille de 60 mm : <b>rogne les pales de 2 à 3 mm</b>. Règle ensuite la languette de la plaque pour qu'elle effleure le bout des pales.</p>
+      <p>Hauteur hors tout avec la grille : environ 6,6 cm. Les cartes et les piles sont placées à titre indicatif.</p>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function () {
+  if (!window.THREE) return;
+  var PI = Math.PI;
+  var css = getComputedStyle(document.documentElement);
+  function tok(n) { return css.getPropertyValue(n).trim(); }
+
+  // Box Type JJ : 145 × 120 × 39 mm. Unité : cm. x vers la droite, z vers l'avant, y vers le haut.
+  var L = 14.5, D = 12.0, H = 3.9, WALL = .3;
+  function X(mmLeft) { return (mmLeft - 72.5) / 10; }
+  function Z(mmFront) { return (60 - mmFront) / 10; }
+  var AX = { x: X(40), z: Z(75) };
+  var P = { speed: [X(92), Z(30)], vol: [X(127), Z(30)], sw: [X(92), Z(85)], led: [X(127), Z(90)] };
+  var JACK_Y = 1.9;
+  var st = { on: true, speed: .45, vol: .7 };
+
+  var scene = new THREE.Scene();
+  function std(c, r, m, extra) {
+    var o = { color: c, roughness: r, metalness: m };
+    if (extra) for (var k in extra) o[k] = extra[k];
+    return new THREE.MeshStandardMaterial(o);
+  }
+  var M = {
+    body: std(0xa9aaa4, .5, .6),
+    alu: std(0xc4c6c2, .32, .62),
+    chrome: std(0xd8dad6, .26, .55),
+    grille: std(0xc9cbc6, .32, .55),
+    black: std(0x1c1c1b, .55, .1),
+    brown: std(0x2b1d16, .5, .08),
+    rubber: std(0x111111, .95, 0),
+    red: std(0xb3261e, .38, .05, { transparent: true, opacity: .93 }),
+    brass: std(0xb38f4b, .42, .5),
+    prop: std(0x2c2d2a, .5, .05),
+    pcb: std(0x8a6a3a, .7, .05),
+    ceramic: std(0xe8e4d8, .7, 0),
+    motor: std(0xb7b9b5, .35, .65),
+    batt: std(0x2a2f3a, .6, .1),
+    wireR: std(0xb8322a, .6, 0),
+    wireK: std(0x161616, .6, 0),
+    wireW: std(0xd8d4c8, .6, 0),
+    led: std(0x6a1a14, .3, 0, { emissive: 0xff2a1a, emissiveIntensity: 0 })
+  };
+  function add(geo, mat, x, y, z, parent) {
+    var m = new THREE.Mesh(geo, mat);
+    m.position.set(x || 0, y || 0, z || 0);
+    (parent || scene).add(m);
+    return m;
+  }
+  function box(w, h, d) { return new THREE.BoxGeometry(w, h, d); }
+  function cyl(r1, r2, h, s) { return new THREE.CylinderGeometry(r1, r2, h, s || 24); }
+  function roundedRect(w, d, r) {
+    var s = new THREE.Shape(), x = -w / 2, y = -d / 2;
+    s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r);
+    s.lineTo(x + w, y + d - r); s.quadraticCurveTo(x + w, y + d, x + w - r, y + d);
+    s.lineTo(x + r, y + d); s.quadraticCurveTo(x, y + d, x, y + d - r);
+    s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
+    return s;
+  }
+  function canvasTex(w, h) {
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var t = new THREE.CanvasTexture(c); t.anisotropy = 4;
+    return { c: c, ctx: c.getContext('2d'), t: t };
+  }
+  function seeded(seed) { return function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
+  function spacing(g, v) { if ('letterSpacing' in g) g.letterSpacing = v; }
+
+  // ---------- boîtier ----------
+  var B = .25;
+  var shell = new THREE.Group(); scene.add(shell);
+  var bodyGeo = new THREE.ExtrudeGeometry(roundedRect(L - 2 * B, D - 2 * B, .45), { depth: H - .35 - 2 * B, bevelEnabled: true, bevelThickness: B, bevelSize: B, bevelSegments: 4, curveSegments: 10 });
+  bodyGeo.rotateX(-PI / 2); bodyGeo.translate(0, .35 + B, 0);
+  add(bodyGeo, M.body, 0, 0, 0, shell);
+  // couvercle (fond) et ses 4 vis
+  var lidGeo = new THREE.ExtrudeGeometry(roundedRect(L - .1, D - .1, .5), { depth: .3, bevelEnabled: false, curveSegments: 10 });
+  lidGeo.rotateX(-PI / 2); lidGeo.translate(0, .03, 0);
+  var lid = add(lidGeo, M.body, 0, 0, 0, shell);
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (s) {
+    add(cyl(.18, .18, .04, 16), M.chrome, s[0] * (L / 2 - .55), .01, s[1] * (D / 2 - .55));
+  });
+  // pieds
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (s) {
+    add(cyl(.55, .55, .3, 20), M.rubber, s[0] * (L / 2 - 1.4), -.15, s[1] * (D / 2 - 1.4));
+  });
+  // rivets déco
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (s) {
+    add(new THREE.SphereGeometry(.16, 14, 8, 0, PI * 2, 0, PI / 2), M.chrome, s[0] * (L / 2 - .75), H, s[1] * (D / 2 - .75));
+  });
+
+  // gravure du dessus
+  var TPX = 10; // px par mm
+  var top = canvasTex(L * 10 * TPX / 1, D * 10 * TPX / 1);
+  function tx(mm) { return mm * TPX; }
+  function drawTop() {
+    var g = top.ctx, W = top.c.width, Hh = top.c.height; g.clearRect(0, 0, W, Hh);
+    var ink = st.fin === 'noir' ? 'rgba(228,222,200,.9)' : 'rgba(24,25,21,.9)';
+    g.strokeStyle = ink; g.fillStyle = ink; g.textAlign = 'center'; g.textBaseline = 'middle';
+    function dial(mmL, mmF, name) {
+      var cx = tx(mmL), cy = Hh - tx(mmF);
+      for (var i = 0; i <= 10; i++) {
+        var a = (i / 10 * 270 - 135) * PI / 180, r1 = tx(13), r2 = tx(i % 5 ? 14.6 : 15.8);
+        g.lineWidth = i % 5 ? 3 : 5; g.beginPath();
+        g.moveTo(cx + r1 * Math.sin(a), cy - r1 * Math.cos(a)); g.lineTo(cx + r2 * Math.sin(a), cy - r2 * Math.cos(a)); g.stroke();
+      }
+      g.font = '600 38px "Barlow Condensed", sans-serif'; spacing(g, '5px');
+      g.fillText(name, cx, cy - tx(20)); spacing(g, '0px');
+    }
+    dial(92, 30, 'VITESSE'); dial(127, 30, 'VOLUME');
+    g.font = '600 36px "Barlow Condensed", sans-serif'; spacing(g, '5px');
+    g.fillText('MOTEUR', tx(92), Hh - tx(108));
+    g.fillText('ON', tx(92), Hh - tx(62));
+    g.fillText('TÉMOIN', tx(127), Hh - tx(104));
+    spacing(g, '0px');
+    g.font = '30px "Allerta Stencil", Impact, sans-serif';
+    g.fillText('Nº 001', tx(110), Hh - tx(6.5));
+    top.t.needsUpdate = true;
+  }
+  var topPlane = add(new THREE.PlaneGeometry(L, D), new THREE.MeshBasicMaterial({ map: top.t, transparent: true, depthWrite: false }), 0, H + .004, 0);
+  topPlane.rotation.x = -PI / 2;
+
+  // pochoir face avant
+  var stencil = canvasTex(1400, 300);
+  function drawStencil() {
+    var g = stencil.ctx; g.clearRect(0, 0, 1400, 300);
+    g.fillStyle = st.fin === 'noir' ? 'rgba(228,222,200,.9)' : 'rgba(24,25,21,.88)'; g.textBaseline = 'middle';
+    g.font = '150px "Allerta Stencil", Impact, sans-serif'; g.fillText('DRONE BOX', 20, 120);
+    g.font = '600 60px "Barlow Condensed", "Arial Narrow", sans-serif'; spacing(g, '8px');
+    g.fillText('MOTEUR · PIEZO · 6 V / 9 V', 26, 250); spacing(g, '0px');
+    var rnd = seeded(7); g.globalCompositeOperation = 'destination-out';
+    for (var i = 0; i < 220; i++) { g.beginPath(); g.arc(rnd() * 1400, rnd() * 300, rnd() * 3.5 + .6, 0, PI * 2); g.fill(); }
+    g.globalCompositeOperation = 'source-over'; stencil.t.needsUpdate = true;
+  }
+  add(new THREE.PlaneGeometry(9.8, 2.1), new THREE.MeshBasicMaterial({ map: stencil.t, transparent: true, depthWrite: false }), -1.9, 2.1, D / 2 + .005);
+  // plaque laiton face avant
+  add(box(3.2, 1.5, .08), M.brass, 4.9, 2.1, D / 2 + .04);
+  var brass = canvasTex(512, 240);
+  function drawBrass() {
+    var g = brass.ctx; g.clearRect(0, 0, 512, 240);
+    g.strokeStyle = 'rgba(40,30,12,.8)'; g.lineWidth = 5; g.strokeRect(16, 16, 480, 208);
+    g.fillStyle = 'rgba(40,30,12,.88)'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = '92px "Allerta Stencil", Impact, sans-serif'; g.fillText('Nº 001', 256, 104);
+    g.font = '600 40px "Barlow Condensed", sans-serif'; g.fillText('LYON · 2026', 256, 186);
+    brass.t.needsUpdate = true;
+  }
+  add(new THREE.PlaneGeometry(3.2, 1.5), new THREE.MeshBasicMaterial({ map: brass.t, transparent: true, depthWrite: false }), 4.9, 2.1, D / 2 + .085);
+  [-1.35, 1.35].forEach(function (dx) { add(new THREE.SphereGeometry(.09, 12, 8, 0, PI * 2, 0, PI / 2), M.brass, 4.9 + dx, 2.1, D / 2 + .09).rotation.x = PI / 2; });
+
+  // ---------- commandes du dessus ----------
+  var pointerShape = new THREE.Shape();
+  pointerShape.moveTo(0, 1.25); pointerShape.lineTo(.32, .22);
+  pointerShape.quadraticCurveTo(.6, -.6, 0, -.72); pointerShape.quadraticCurveTo(-.6, -.6, -.32, .22);
+  pointerShape.closePath();
+  var pointerGeo = new THREE.ExtrudeGeometry(pointerShape, { depth: .35, bevelEnabled: true, bevelThickness: .04, bevelSize: .04, bevelSegments: 2 });
+  pointerGeo.rotateX(-PI / 2);
+  function knob(pos) {
+    var g = new THREE.Group(); g.position.set(pos[0], H, pos[1]); scene.add(g);
+    add(cyl(.45, .45, .2, 6), M.chrome, 0, .1, 0, g);
+    var rot = new THREE.Group(); g.add(rot);
+    add(cyl(.62, .7, .45, 32), M.brown, 0, .42, 0, rot);
+    add(pointerGeo, M.brown, 0, .68, 0, rot);
+    add(box(.07, .02, 1.0), M.ceramic, 0, 1.08, -.62, rot);
+    return rot;
+  }
+  var kSpeed = knob(P.speed), kVol = knob(P.vol);
+
+  // interrupteur missile
+  var sw = new THREE.Group(); sw.position.set(P.sw[0], H, P.sw[1]); scene.add(sw);
+  add(box(2.1, .25, 3.7), M.black, 0, .125, 0, sw);
+  add(cyl(.6, .6, .25, 6), M.chrome, 0, .375, 0, sw);
+  var lever = new THREE.Group(); lever.position.y = .5; sw.add(lever);
+  add(cyl(.09, .11, 1.2, 12), M.chrome, 0, .6, 0, lever);
+  add(new THREE.SphereGeometry(.16, 14, 10), M.chrome, 0, 1.22, 0, lever);
+  var cover = new THREE.Group(); cover.position.set(0, .25, -1.75); sw.add(cover);
+  add(cyl(.14, .14, 2.1, 12), M.chrome, 0, 0, 0, cover).rotation.z = PI / 2;
+  add(box(1.95, .12, 3.4), M.red, 0, 1.5, 1.7, cover);
+  add(box(.12, 1.5, 3.4), M.red, -.92, .75, 1.7, cover);
+  add(box(.12, 1.5, 3.4), M.red, .92, .75, 1.7, cover);
+  add(box(1.95, 1.5, .12), M.red, 0, .75, 3.35, cover);
+
+  // LED dans son support chromé
+  var ledG = new THREE.Group(); ledG.position.set(P.led[0], H, P.led[1]); scene.add(ledG);
+  add(cyl(.42, .48, .3, 28), M.chrome, 0, .15, 0, ledG);
+  add(new THREE.SphereGeometry(.26, 20, 12, 0, PI * 2, 0, PI / 2), M.led, 0, .3, 0, ledG);
+  var ledLight = new THREE.PointLight(0xff3a28, 0, 5, 2); ledLight.position.y = .9; ledG.add(ledLight);
+
+  // ---------- jacks à l'arrière ----------
+  var zb = -D / 2 - .02;
+  function jack(xmm, big) {
+    var g = new THREE.Group(); g.position.set(X(xmm), JACK_Y, zb); g.rotation.x = -PI / 2; scene.add(g);
+    var r = big ? .62 : .42;
+    add(cyl(r + .1, r + .1, .08, 28), M.chrome, 0, .04, 0, g);
+    add(cyl(r, r, .25, 6), M.chrome, 0, .2, 0, g);
+    add(cyl(r * .5, r * .5, .26, 20), M.rubber, 0, .21, 0, g);
+  }
+  jack(118, true); jack(88, false);
+  var back = canvasTex(1450, 120);
+  function drawBack() {
+    var g = back.ctx; g.clearRect(0, 0, 1450, 120);
+    g.fillStyle = st.fin === 'noir' ? 'rgba(228,222,200,.9)' : 'rgba(24,25,21,.88)'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = '600 64px "Barlow Condensed", sans-serif'; spacing(g, '6px');
+    // vue de l'arrière : la gauche du boîtier est à droite de la texture
+    g.fillText('SORTIE', 1450 - 1180, 60); g.fillText('CV', 1450 - 880, 60); spacing(g, '0px');
+    back.t.needsUpdate = true;
+  }
+  var backPlane = add(new THREE.PlaneGeometry(L, 1.2), new THREE.MeshBasicMaterial({ map: back.t, transparent: true, depthWrite: false }), 0, JACK_Y + 1.15, -D / 2 - .005);
+  backPlane.rotation.y = PI;
+
+  // ---------- hélice, grille, plaque vibrante ----------
+  var fan = new THREE.Group(); fan.position.set(AX.x, 0, AX.z); scene.add(fan);
+  add(cyl(.32, .32, .12, 20), M.motor, 0, H + .06, 0, fan);            // palier
+  add(cyl(.1, .1, .9, 12), M.chrome, 0, H + .45, 0, fan);              // axe Ø 2
+  var prop = new THREE.Group(); prop.position.y = H + .95; fan.add(prop);
+  add(cyl(.4, .4, .45, 24), M.prop, 0, 0, 0, prop);
+  add(new THREE.ConeGeometry(.4, .35, 24), M.prop, 0, .4, 0, prop);
+  var bs = new THREE.Shape();
+  bs.moveTo(.3, -.28); bs.quadraticCurveTo(1.5, -.55, 2.65, -.22);
+  bs.quadraticCurveTo(2.82, .06, 2.5, .3); bs.quadraticCurveTo(1.3, .5, .3, .26); bs.closePath();
+  var bladeGeo = new THREE.ExtrudeGeometry(bs, { depth: .05, bevelEnabled: false });
+  bladeGeo.rotateX(-PI / 2);
+  for (var i = 0; i < 5; i++) {
+    var arm = new THREE.Group(); arm.rotation.y = i * PI * 2 / 5; prop.add(arm);
+    add(bladeGeo, M.prop, 0, 0, 0, arm).rotation.x = .32;
+  }
+  var blurMat = new THREE.MeshBasicMaterial({ color: 0x8c8b83, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide });
+  var blur = add(new THREE.RingGeometry(.45, 2.8, 48), blurMat, 0, .02, 0, prop); blur.rotation.x = -PI / 2;
+  // grille 60 × 60 sur entretoises de 25 mm
+  var GY = H + 2.55;
+  add(new THREE.TorusGeometry(2.9, .05, 6, 72), M.grille, 0, GY, 0, fan).rotation.x = PI / 2;
+  [.6, 1.2, 1.8, 2.4].forEach(function (r) { add(new THREE.TorusGeometry(r, .04, 6, 64), M.grille, 0, GY, 0, fan).rotation.x = PI / 2; });
+  [PI / 4, -PI / 4].forEach(function (a) { add(box(7.6, .07, .08), M.grille, 0, GY, 0, fan).rotation.y = a; });
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (s) {
+    var x = s[0] * 2.5, z = s[1] * 2.5;
+    add(cyl(.42, .42, .07, 20), M.grille, x, GY, z, fan);
+    add(cyl(.27, .27, .12, 16), M.chrome, x, GY + .09, z, fan);
+    add(cyl(.25, .25, 2.5, 6), M.chrome, x, H + 1.25, z, fan);
+  });
+  // plaque vibrante : base sur 2 passe-câbles, languette relevée sous le bout des pales
+  var plate = new THREE.Group(); scene.add(plate);
+  var PB = { x: X(40), z: Z(27.5), w: 3.6, d: 2.5, y: H + .35 };
+  add(box(PB.w, .05, PB.d), M.alu, PB.x, PB.y, PB.z, plate);
+  [30, 50].forEach(function (mm) {
+    add(cyl(.38, .38, .3, 20), M.rubber, X(mm), H + .17, Z(27), plate);
+    add(cyl(.2, .2, .05, 6), M.chrome, X(mm), PB.y + .05, Z(27), plate);
+  });
+  // languette : de z(40) à z(48), monte de 0,35 à 0,85 au-dessus du dessus
+  var t0 = new THREE.Vector3(PB.x, PB.y, Z(40)), t1 = new THREE.Vector3(PB.x, H + .86, Z(48.5));
+  var tongue = add(box(1.1, .05, t0.distanceTo(t1)), M.alu, (t0.x + t1.x) / 2, (t0.y + t1.y) / 2, (t0.z + t1.z) / 2, plate);
+  tongue.rotation.x = Math.atan2(t1.y - t0.y, -(t1.z - t0.z));
+  // piezos collés sous la base
+  [-.85, .85].forEach(function (dx) {
+    add(cyl(1.35 * .55, 1.35 * .55, .03, 36), M.brass, PB.x + dx, PB.y - .045, PB.z + .1, plate);
+    add(cyl(.95 * .55, .95 * .55, .03, 32), M.ceramic, PB.x + dx, PB.y - .07, PB.z + .1, plate);
+  });
+  // passe-câble des fils piezo
+  add(new THREE.TorusGeometry(.32, .1, 8, 24), M.rubber, X(40), H + .02, Z(10)).rotation.x = PI / 2;
+
+  // ---------- intérieur (rayons X) ----------
+  var inner = new THREE.Group(); inner.visible = false; scene.add(inner);
+  var IT = H - WALL; // dessous de la paroi du dessus
+  // moteur 130 : 20 × 15 mm, 27,5 mm de long, monté debout
+  var mot = add(cyl(1.0, 1.0, 2.75, 32), M.motor, AX.x, IT - 1.375, AX.z, inner); mot.scale.z = .75;
+  add(box(.9, .35, .2), M.brass, AX.x, IT - 2.9, AX.z, inner);
+  // potars, interrupteur, support LED, jacks
+  [P.speed, P.vol].forEach(function (p) { add(cyl(.8, .8, .9, 24), M.chrome, p[0], IT - .5, p[1], inner); add(box(1.2, .5, .2), M.brass, p[0], IT - 1.15, p[1] - .6, inner); });
+  add(box(1.2, 2.2, 1.4), M.black, P.sw[0], IT - 1.1, P.sw[1], inner);
+  add(cyl(.25, .25, .9, 12), M.led, P.led[0], IT - .45, P.led[1], inner);
+  add(box(1.6, 1.5, 2.8), M.black, X(118), JACK_Y, -D / 2 + WALL + 1.4, inner);
+  add(box(1.0, 1.0, 1.5), M.black, X(88), JACK_Y, -D / 2 + WALL + .75, inner);
+  // piles : 4 × AA (avant droit) et 9 V (arrière gauche)
+  add(box(5.8, 1.55, 6.2), M.batt, X(110), .35 + .78, Z(36), inner);
+  add(box(4.8, 1.75, 2.6), M.batt, X(36), .35 + .88, Z(103), inner);
+  add(box(.8, .12, .5), M.ceramic, X(36) + 2.4, .35 + 1.2, Z(103), inner);
+  // cartes : commande moteur (avant gauche) et préampli (arrière centre)
+  add(box(5, .16, 4.5), M.pcb, X(36), .45, Z(32), inner);
+  add(box(1.0, 1.5, .45), M.black, X(50), 1.3, Z(22), inner);          // TIP121
+  add(box(1.9, 1.9, .2), M.chrome, X(50), 1.5, Z(19.5), inner);        // dissipateur
+  add(box(5, .16, 3.4), M.pcb, X(74), .45, Z(78), inner);
+  add(cyl(.22, .22, .5, 12), M.black, X(66), .75, Z(80), inner);       // JFET
+  add(cyl(.25, .25, .7, 16), M.batt, X(72), .85, Z(74), inner);        // 10 µF
+  add(box(.6, .35, .25), M.wireR, X(80), .7, Z(82), inner);            // MKT
+  function wire(pts, mat) {
+    var c = new THREE.CatmullRomCurve3(pts.map(function (p) { return new THREE.Vector3(p[0], p[1], p[2]); }));
+    add(new THREE.TubeGeometry(c, 48, .05, 6, false), mat, 0, 0, 0, inner);
+  }
+  wire([[X(110), 1.9, Z(36)], [X(100), 2.6, Z(60)], [P.sw[0], IT - 2.2, P.sw[1]]], M.wireR);
+  wire([[P.sw[0], IT - 2.2, P.sw[1]], [X(70), 1.4, Z(50)], [X(45), .6, Z(40)]], M.wireR);
+  wire([[X(45), .6, Z(30)], [X(42), 1.2, Z(55)], [AX.x, IT - 2.9, AX.z]], M.wireK);
+  wire([[P.speed[0], IT - 1.15, P.speed[1] - .6], [X(75), 1.2, Z(32)], [X(55), .6, Z(30)]], M.wireW);
+  wire([[X(40), IT, Z(10)], [X(40), 1.8, Z(18)], [X(60), 1.2, Z(55)], [X(68), .6, Z(76)]], M.wireK);
+  wire([[X(78), .6, Z(78)], [X(100), 1.4, Z(55)], [P.vol[0], IT - 1.15, P.vol[1] - .6]], M.wireW);
+  wire([[P.vol[0], IT - 1.15, P.vol[1] - .6], [X(125), 1.6, Z(70)], [X(118), JACK_Y, -D / 2 + 2.8]], M.wireW);
+  wire([[X(36) + 2.4, 1.6, Z(103)], [X(60), 1.2, Z(95)], [X(70), .6, Z(82)]], M.wireR);
+
+  // ---------- sol (perspective seulement) ----------
+  var ground = add(new THREE.CircleGeometry(40, 64), new THREE.MeshStandardMaterial({ color: 0x23241f, roughness: 1, metalness: 0 }), 0, -.31, 0);
+  ground.rotation.x = -PI / 2; ground.layers.set(2);
+  var grid = new THREE.GridHelper(60, 60, 0x3a3c33, 0x2b2d26); grid.position.y = -.3; grid.layers.set(2); scene.add(grid);
+
+  // ---------- cotes (vues orthographiques) ----------
+  var dimMat = new THREE.LineBasicMaterial({ color: 0xd9d4c2, depthTest: false, transparent: true });
+  function label(text) {
+    var c = document.createElement('canvas'); c.width = 512; c.height = 128;
+    var tex = new THREE.CanvasTexture(c);
+    var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+    sp.scale.set(5, 1.25, 1); sp.renderOrder = 10;
+    sp.userData.draw = function () {
+      var g = c.getContext('2d'); g.clearRect(0, 0, 512, 128);
+      g.font = '500 58px "IBM Plex Mono", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.lineWidth = 10; g.strokeStyle = 'rgba(26,27,22,.95)'; g.strokeText(text, 256, 66);
+      g.fillStyle = '#e6e2d3'; g.fillText(text, 256, 66); tex.needsUpdate = true;
+    };
+    sp.userData.draw(); return sp;
+  }
+  var dims = new THREE.Group(); scene.add(dims); var labels = [];
+  function dim(a, b, perp, text, off, layer) {
+    var A = new THREE.Vector3().fromArray(a), B2 = new THREE.Vector3().fromArray(b), Pp = new THREE.Vector3().fromArray(perp).multiplyScalar(.3);
+    var pts = [A, B2, A.clone().add(Pp), A.clone().sub(Pp), B2.clone().add(Pp), B2.clone().sub(Pp)];
+    var seg = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), dimMat); seg.renderOrder = 9; seg.layers.set(layer); dims.add(seg);
+    var lb = label(text); lb.position.copy(A).add(B2).multiplyScalar(.5).add(new THREE.Vector3().fromArray(off)); lb.layers.set(layer); dims.add(lb); labels.push(lb);
+  }
+  var ty = GY + 1;
+  dim([-L / 2, ty, D / 2 + 1.4], [L / 2, ty, D / 2 + 1.4], [0, 0, 1], '14,5 cm', [0, 0, 1.1], 1);
+  dim([L / 2 + 1.4, ty, -D / 2], [L / 2 + 1.4, ty, D / 2], [1, 0, 0], '12 cm', [2.6, 0, 0], 1);
+  dim([-L / 2, ty, D / 2 + 3.2], [AX.x, ty, D / 2 + 3.2], [0, 0, 1], 'axe 4', [0, 0, 1.1], 1);
+  var fz = D / 2 + 4;
+  dim([-L / 2, -1.3, fz], [L / 2, -1.3, fz], [0, 1, 0], '14,5 cm', [0, -1.1, 0], 3);
+  dim([L / 2 + 1.3, 0, fz], [L / 2 + 1.3, H, fz], [1, 0, 0], '3,9 cm', [2.9, 0, 0], 3);
+  dim([-L / 2 - 1.3, 0, fz], [-L / 2 - 1.3, GY + .15, fz], [1, 0, 0], '≈ 6,6 cm', [-3.2, 0, 0], 3);
+
+  // ---------- lumières ----------
+  scene.add(new THREE.HemisphereLight(0xe8e4d4, 0x24251f, .62));
+  var key = new THREE.DirectionalLight(0xfff1dc, .95); key.position.set(14, 22, 12); scene.add(key);
+  var fill = new THREE.DirectionalLight(0xbcc6d6, .38); fill.position.set(-16, 9, -12); scene.add(fill);
+  var rim = new THREE.DirectionalLight(0xffffff, .25); rim.position.set(0, 6, 20); scene.add(rim);
+  [key, fill, rim].forEach(function (l) { l.layers.enableAll(); });
+
+  // ---------- vues ----------
+  var stageColor = new THREE.Color(tok('--stage') || '#1a1b16');
+  var views = [];
+  function makeView(id, cam, onResize) {
+    var el = document.getElementById(id);
+    var r = new THREE.WebGLRenderer({ antialias: true });
+    r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    r.setClearColor(stageColor);
+    el.appendChild(r.domElement);
+    var v = { el: el, r: r, cam: cam };
+    function size() { var w = el.clientWidth, h = el.clientHeight; if (!w || !h) return; r.setSize(w, h, false); onResize(w / h); }
+    if (window.ResizeObserver) new ResizeObserver(size).observe(el); else window.addEventListener('resize', size);
+    size(); views.push(v); return v;
+  }
+  function fitOrtho(cam, w, h, aspect) {
+    var hw, hh;
+    if (w / h > aspect) { hw = w / 2; hh = hw / aspect; } else { hh = h / 2; hw = hh * aspect; }
+    cam.left = -hw; cam.right = hw; cam.top = hh; cam.bottom = -hh; cam.updateProjectionMatrix();
+  }
+  var pcam = new THREE.PerspectiveCamera(32, 1.5, .2, 200);
+  pcam.layers.enable(2);
+  var home = { pos: new THREE.Vector3(17, 15, 21), target: new THREE.Vector3(0, 2.6, 0) };
+  pcam.position.copy(home.pos);
+  var main = makeView('v3d', pcam, function (a) { pcam.aspect = a; pcam.updateProjectionMatrix(); });
+  var controls = null;
+  if (THREE.OrbitControls) {
+    controls = new THREE.OrbitControls(pcam, main.r.domElement);
+    controls.enableDamping = true; controls.dampingFactor = .08;
+    controls.minDistance = 8; controls.maxDistance = 70; controls.maxPolarAngle = PI * .495;
+    controls.target.copy(home.target); controls.update();
+  } else { pcam.lookAt(home.target); }
+
+  var tcam = new THREE.OrthographicCamera(-1, 1, 1, -1, .1, 100);
+  tcam.layers.enable(1);
+  var topC = { x: 1.2, z: 1.8, w: 25, h: 21 };
+  tcam.up.set(0, 0, -1); tcam.position.set(topC.x, 50, topC.z); tcam.lookAt(topC.x, 0, topC.z);
+  makeView('vtop', tcam, function (a) { fitOrtho(tcam, topC.w, topC.h, a); });
+
+  var fcam = new THREE.OrthographicCamera(-1, 1, 1, -1, .1, 100);
+  fcam.layers.enable(3);
+  var frC = { x: 0, y: 2.4, w: 27, h: 12 };
+  fcam.position.set(frC.x, frC.y, 50); fcam.lookAt(frC.x, frC.y, 0);
+  makeView('vfront', fcam, function (a) { fitOrtho(fcam, frC.w, frC.h, a); });
+
+  // ---------- état & interface ----------
+  function setFinish(f) {
+    st.fin = f;
+    M.body.color.set(f === 'noir' ? 0x1d1e1f : 0xa9aaa4);
+    M.body.roughness = f === 'noir' ? .85 : .5; M.body.metalness = f === 'noir' ? .15 : .6;
+    drawTop(); drawStencil(); drawBack();
+  }
+  function setXray(on) {
+    M.body.transparent = on; M.body.opacity = on ? .14 : 1; M.body.depthWrite = !on; M.body.needsUpdate = true;
+    topPlane.visible = !on;
+    inner.visible = on;
+  }
+  var $power = document.getElementById('power'), $ptxt = document.getElementById('power-txt');
+  var $speed = document.getElementById('speed'), $sread = document.getElementById('speed-read');
+  var $vol = document.getElementById('vol'), $vread = document.getElementById('vol-read');
+  function syncUI() {
+    $power.setAttribute('aria-pressed', String(st.on)); $ptxt.textContent = st.on ? 'Marche' : 'Arrêt';
+    // suiveur d'émetteur : environ 6 V × position − 1,2 V de chute du Darlington
+    var v = Math.max(0, st.speed * 6 - 1.2);
+    $sread.textContent = '≈ ' + v.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' V';
+    $vread.textContent = (Math.round(st.vol * 100) / 10).toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' / 10';
+  }
+  $power.addEventListener('click', function () { st.on = !st.on; syncUI(); });
+  $speed.addEventListener('input', function () { st.speed = $speed.value / 100; syncUI(); });
+  $vol.addEventListener('input', function () { st.vol = $vol.value / 100; syncUI(); });
+  document.querySelectorAll('input[name=fin]').forEach(function (r) { r.addEventListener('change', function () { setFinish(r.value); }); });
+  document.getElementById('xray').addEventListener('change', function (e) { setXray(e.target.checked); });
+  document.getElementById('reset').addEventListener('click', function () {
+    pcam.position.copy(home.pos); if (controls) { controls.target.copy(home.target); controls.update(); }
+  });
+  st.speed = $speed.value / 100; st.vol = $vol.value / 100;
+  st.fin = (document.querySelector('input[name=fin]:checked') || {}).value || 'brut';
+  setFinish(st.fin);
+  setXray(document.getElementById('xray').checked);
+  syncUI();
+
+  function drawAll() { drawTop(); drawStencil(); drawBrass(); drawBack(); labels.forEach(function (l) { l.userData.draw(); }); }
+  drawAll();
+  if (document.fonts && document.fonts.load) {
+    Promise.all([
+      document.fonts.load('150px "Allerta Stencil"'),
+      document.fonts.load('600 40px "Barlow Condensed"'),
+      document.fonts.load('500 40px "IBM Plex Mono"')
+    ]).then(drawAll, drawAll);
+  }
+
+  var clock = new THREE.Clock(), omega = 0, coverA = st.on ? -1.95 : 0, leverA = st.on ? .55 : -.55, ledI = st.on ? 1 : 0;
+  function knobAngle(v) { return -(v * 270 - 135) * PI / 180; }
+  function frame() {
+    var dt = Math.min(clock.getDelta(), .05);
+    var volts = Math.max(0, st.speed * 6 - 1.2);
+    var target = st.on && volts > .6 ? 4 + volts * 13 : 0;
+    omega += (target - omega) * Math.min(1, dt * (st.on ? 1.8 : .9));
+    prop.rotation.y -= omega * dt;
+    blurMat.opacity = Math.max(0, Math.min(.32, (omega - 12) / 100));
+    var k = Math.min(1, dt * 7);
+    coverA += ((st.on ? -1.95 : 0) - coverA) * k; cover.rotation.x = coverA;
+    leverA += ((st.on ? .55 : -.55) - leverA) * k; lever.rotation.x = leverA;
+    ledI += ((st.on ? 1 : 0) - ledI) * k;
+    M.led.emissiveIntensity = ledI * 1.7; ledLight.intensity = ledI * .7;
+    kSpeed.rotation.y = knobAngle(st.speed); kVol.rotation.y = knobAngle(st.vol);
+    if (controls) controls.update();
+    for (var i = 0; i < views.length; i++) views[i].r.render(scene, views[i].cam);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

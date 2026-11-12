@@ -16,11 +16,20 @@ Inspiration : le *Rotary Drone* de The Sound of Machines.
 
 | Fichier | Contenu |
 |---|---|
+| [`docs/maquette-3d.html`](docs/maquette-3d.html) | Maquette 3D interactive : trois vues cotées, vue rayons X, plan de perçage |
 | [`docs/schema.svg`](docs/schema.svg) | Schéma du préampli piezo et de la commande moteur |
 | [`docs/circuit.md`](docs/circuit.md) | Explication du circuit, câblage et notes de montage |
 | [`docs/achats.md`](docs/achats.md) | Liste d'achats détaillée avec liens et prix |
 | [`bom/sourcing.csv`](bom/sourcing.csv) | La même liste en CSV (séparateur `;`) |
 | [`bom/boitiers.csv`](bom/boitiers.csv) | Comparatif des boîtiers UE / Chine / US |
+
+## Maquette 3D
+
+![Maquette 3D](docs/maquette-3d.png)
+
+Pour la manipuler, télécharge [`docs/maquette-3d.html`](docs/maquette-3d.html) et ouvre-le dans un navigateur (connexion internet nécessaire pour charger three.js). On peut faire tourner le boîtier, actionner l'interrupteur missile, régler vitesse et volume, passer en noir mat et voir l'intérieur en rayons X. Le plan de perçage est en bas de la page et dans [`docs/circuit.md`](docs/circuit.md).
+
+## Schéma
 
 ![Schéma](docs/schema.svg)
 
